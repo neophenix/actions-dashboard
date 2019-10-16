@@ -37,15 +37,17 @@ type checkRunResponse struct {
 	CheckRuns  []checkRunInfo `json:"check_runs"`
 }
 type checkRunInfo struct {
-	Name       string `json:"name"`
-	Status     string `json:"status"`
-	Conclusion string `json:"conclusion"`
+	Name        string `json:"name"`
+	Status      string `json:"status"`
+	Conclusion  string `json:"conclusion"`
+	CompletedAt string `json:"completed_at"`
 }
 
 type repoStatus struct {
 	Name   string
 	Status string
 	URL    string
+	Time   string
 }
 
 func main() {
@@ -84,7 +86,7 @@ func main() {
 		fmt.Fprintf(w, "</style>")
 		fmt.Fprintf(w, "</head><body>")
 		for _, v := range s {
-			fmt.Fprintf(w, `<a href="%s" target="_blank"><div class="%s">%s</div></a>`, v.URL, v.Status, v.Name)
+			fmt.Fprintf(w, `<a href="%s" target="_blank"><div class="%s"><p>%s</p><p>%s</p></div></a>`, v.URL, v.Status, v.Name, v.Time)
 		}
 		fmt.Fprintf(w, "</body></html>")
 	})
@@ -146,12 +148,18 @@ func getRepos() []repoInfo {
 
 func doRepoWork(repo repoInfo, c chan<- repoStatus) {
 	sha := getShaOfLastCommit(repo.FullName)
-	result := getCheckRunStatusOfLastCommit(repo.FullName, sha)
+	runInfo := getCheckRunStatusOfLastCommit(repo.FullName, sha)
 	status := repoStatus{
 		Name:   repo.Name,
-		Status: result,
+		Status: "unknown",
 		URL:    repo.HTMLUrl,
+		Time:   "",
 	}
+	if runInfo != nil {
+		status.Status = runInfo.Conclusion
+		status.Time = runInfo.CompletedAt
+	}
+
 	c <- status
 }
 
@@ -167,7 +175,7 @@ func getShaOfLastCommit(repo string) string {
 	return commits[0].Sha
 }
 
-func getCheckRunStatusOfLastCommit(repo string, sha string) string {
+func getCheckRunStatusOfLastCommit(repo string, sha string) *checkRunInfo {
 	body := httpRequest("https://api.github.com/repos/" + repo + "/commits/" + sha + "/check-runs")
 
 	info := checkRunResponse{}
@@ -177,9 +185,9 @@ func getCheckRunStatusOfLastCommit(repo string, sha string) string {
 	}
 
 	if info.TotalCount > 0 {
-		return info.CheckRuns[0].Conclusion
+		return &info.CheckRuns[0]
 	}
-	return "unknown"
+	return nil
 }
 
 func httpRequest(url string) []byte {
