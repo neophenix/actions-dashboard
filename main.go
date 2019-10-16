@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -78,6 +79,10 @@ func main() {
 			resp := <-c
 			s = append(s, resp)
 		}
+		sort.Slice(s, func(i, j int) bool {
+			return s[i].Name < s[j].Name
+		})
+
 		fmt.Fprintf(w, "<html><head>")
 		fmt.Fprintf(w, "<style>")
 		fmt.Fprintf(w, "body { background-color: black; color: white; }")
