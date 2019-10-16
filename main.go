@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -86,7 +87,7 @@ func main() {
 		fmt.Fprintf(w, "</style>")
 		fmt.Fprintf(w, "</head><body>")
 		for _, v := range s {
-			fmt.Fprintf(w, `<a href="%s" target="_blank"><div class="%s"><p>%s</p><p>%s</p></div></a>`, v.URL, v.Status, v.Name, v.Time)
+			fmt.Fprintf(w, `<a href="%s" target="_blank"><div class="%s"><p>%s</p><p>%s</p><p>%s</p></div></a>`, v.URL, v.Status, v.Name, timeSince(v.Time), v.Time)
 		}
 		fmt.Fprintf(w, "</body></html>")
 	})
@@ -214,4 +215,37 @@ func httpRequest(url string) []byte {
 	}
 
 	return body
+}
+
+func timeSince(t string) string {
+	if t == "" {
+		return ""
+	}
+
+	count := 0
+	unit := ""
+
+	ts, _ := time.Parse(time.RFC3339, t)
+	since := time.Since(ts)
+	if since.Seconds() >= 86400*30 {
+		count = int(since.Seconds() / (86400 * 30))
+		unit = "month"
+	} else if since.Seconds() >= 86400 {
+		count = int(since.Seconds() / 86400)
+		unit = "day"
+	} else if since.Seconds() >= 3600 {
+		count = int(since.Seconds() / 3600)
+		unit = "hour"
+	} else if since.Seconds() >= 60 {
+		count = int(since.Seconds() / 60)
+		unit = "minute"
+	} else {
+		count = int(since.Seconds())
+		unit = "second"
+	}
+
+	if count > 1 {
+		unit += "s"
+	}
+	return strconv.Itoa(count) + " " + unit + " ago"
 }
