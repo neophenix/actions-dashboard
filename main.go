@@ -19,6 +19,7 @@ var org string
 var topic string
 var include string
 var exclude string
+var divWidth string
 
 var httpClient http.Client
 
@@ -59,6 +60,7 @@ func main() {
 	flag.StringVar(&topic, "topics", "", "topics (csv) to include from repo list, this is an or, so any match will include the repo")
 	flag.StringVar(&include, "include", "", "repositories (csv) to look at for check-run status")
 	flag.StringVar(&exclude, "exclude", "", "repositories (csv) to exclude looking at (useful if you are getting repos by topic)")
+	flag.StringVar(&divWidth, "width", "200px", "the repo status div min-width style")
 	flag.Parse()
 
 	httpClient = http.Client{Timeout: 10 * time.Second}
@@ -80,7 +82,7 @@ func main() {
 		fmt.Fprintf(w, "<style>")
 		fmt.Fprintf(w, "body { background-color: black; color: white; }")
 		fmt.Fprintf(w, "a { color: white; text-decoration: none; }")
-		fmt.Fprintf(w, "div { margin: 5px; padding: 15px; float: left; }")
+		fmt.Fprintf(w, "div { margin: 5px; padding: 15px; float: left; min-width: %v }", divWidth)
 		fmt.Fprintf(w, ".success { background-color: #259225; }")
 		fmt.Fprintf(w, ".unknown { background-color: #9d9d9d; }")
 		fmt.Fprintf(w, ".failure { background-color: #eb0000; }")
