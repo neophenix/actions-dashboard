@@ -165,10 +165,13 @@ func doRepoWork(repo repoInfo, c chan<- repoStatus) {
 		Time:   "",
 	}
 	if runInfo != nil {
-		status.Status = runInfo.Conclusion
-		status.Time = runInfo.CompletedAt
+		if runInfo.CompletedAt != "" {
+			status.Status = runInfo.Conclusion
+			status.Time = runInfo.CompletedAt
+		}
 		if runInfo.Status == "in_progress" {
 			status.Status = "inprogress"
+			status.Time = "in progress"
 		}
 	}
 
@@ -229,7 +232,7 @@ func httpRequest(url string) []byte {
 }
 
 func timeSince(t string) string {
-	if t == "" {
+	if t == "" || t == "in progress" {
 		return ""
 	}
 
