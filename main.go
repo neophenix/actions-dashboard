@@ -91,6 +91,7 @@ func main() {
 		fmt.Fprintf(w, ".success { background-color: #259225; }")
 		fmt.Fprintf(w, ".unknown { background-color: #9d9d9d; }")
 		fmt.Fprintf(w, ".failure { background-color: #eb0000; }")
+		fmt.Fprintf(w, ".inprogress { background-color: #6492a3; }")
 		fmt.Fprintf(w, "</style>")
 		fmt.Fprintf(w, "</head><body>")
 		for _, v := range s {
@@ -164,8 +165,14 @@ func doRepoWork(repo repoInfo, c chan<- repoStatus) {
 		Time:   "",
 	}
 	if runInfo != nil {
-		status.Status = runInfo.Conclusion
-		status.Time = runInfo.CompletedAt
+		if runInfo.CompletedAt != "" {
+			status.Status = runInfo.Conclusion
+			status.Time = runInfo.CompletedAt
+		}
+		if runInfo.Status == "in_progress" {
+			status.Status = "inprogress"
+			status.Time = "in progress"
+		}
 	}
 
 	c <- status
@@ -225,7 +232,7 @@ func httpRequest(url string) []byte {
 }
 
 func timeSince(t string) string {
-	if t == "" {
+	if t == "" || t == "in progress" {
 		return ""
 	}
 
