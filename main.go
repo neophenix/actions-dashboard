@@ -106,9 +106,9 @@ func main() {
 func getRepos() []repoInfo {
 	var body []byte
 	if org != "" {
-		body = httpRequest("https://api.github.com/orgs/" + org + "/repos")
+		body = httpRequest("https://api.github.com/orgs/" + org + "/repos?per_page=100")
 	} else if user != "" {
-		body = httpRequest("https://api.github.com/users/" + user + "/repos")
+		body = httpRequest("https://api.github.com/users/" + user + "/repos?per_page=100")
 	} else {
 		log.Fatal("Either user or org is required")
 	}
